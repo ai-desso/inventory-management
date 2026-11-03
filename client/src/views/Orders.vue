@@ -172,61 +172,127 @@ export default {
 </script>
 
 <style scoped>
-/* Fixed table layout to prevent column shifting */
+/* Page header, loading and error use the shared global styles. */
+
+/* Four status tiles stay on one row while they fit, then wrap (global minimum is 280px). */
+.stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+
+.stat-card {
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* The card owns no padding: header and table bleed to the edges so rows and dividers line up. */
+.card {
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-title {
+  margin: 0;
+}
+
+/* Fixed layout keeps columns from shifting; percentage widths plus a minimum table width
+   make the container scroll horizontally instead of crushing the columns. */
 .orders-table {
   table-layout: fixed;
   width: 100%;
+  min-width: 1000px;
 }
 
-/* Column widths */
+.orders-table thead {
+  background: var(--color-surface-muted);
+}
+
+.orders-table th,
+.orders-table td {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
+}
+
+.orders-table th:first-child,
+.orders-table td:first-child {
+  padding-left: var(--space-5);
+}
+
+.orders-table th:last-child,
+.orders-table td:last-child {
+  padding-right: var(--space-5);
+}
+
 .col-order-number {
-  width: 130px;
+  width: 15%;
+  white-space: nowrap;
 }
 
 .col-customer {
-  width: 180px;
+  width: 18%;
 }
 
 .col-items {
-  width: 200px;
+  width: 13%;
 }
 
 .col-status {
-  width: 130px;
+  width: 15%;
 }
 
 .col-date {
-  width: 140px;
+  width: 12%;
 }
 
 .col-value {
-  width: 120px;
+  width: 15%;
+  text-align: right;
 }
 
-/* Items details styling */
+.badge {
+  white-space: nowrap;
+}
+
+/* Items details */
 .items-details {
   position: relative;
 }
 
 .items-summary {
   cursor: pointer;
-  color: #3b82f6;
+  color: var(--color-primary-text);
   font-weight: 500;
   list-style: none;
   user-select: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
 }
 
 .items-summary::-webkit-details-marker {
   display: none;
 }
 
+/* CSS triangle instead of a text glyph, which can render as an emoji on some platforms. */
 .items-summary::before {
-  content: '▶';
-  display: inline-block;
-  margin-right: 0.375rem;
-  font-size: 0.75rem;
-  transition: transform 0.2s;
+  content: '';
+  flex-shrink: 0;
+  margin-right: var(--space-2);
+  border-style: solid;
+  border-width: 4px 0 4px 6px;
+  border-color: transparent transparent transparent currentColor;
+  transition: transform var(--transition-base);
 }
 
 .items-details[open] .items-summary::before {
@@ -234,32 +300,36 @@ export default {
 }
 
 .items-summary:hover {
-  color: #2563eb;
   text-decoration: underline;
 }
 
-/* Dropdown container */
+.items-summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Popover: surface, border and shadow tokens so it follows the dark theme. */
 .items-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 0.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 0.75rem;
-  z-index: 10;
-  min-width: 300px;
-  max-width: 400px;
+  margin-top: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  z-index: var(--z-sticky);
+  min-width: min(300px, 70vw);
+  max-width: min(400px, 90vw);
 }
 
 .item-entry {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .item-entry:last-child {
@@ -267,13 +337,34 @@ export default {
 }
 
 .item-name {
-  font-size: 0.875rem;
+  font-size: var(--text-md);
   font-weight: 500;
-  color: #0f172a;
+  color: var(--color-heading);
 }
 
 .item-meta {
-  font-size: 0.813rem;
-  color: #64748b;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+/* Icon-rail width: the table scrolls sideways, so an absolute popover would be clipped by the
+   scroll container. Expand the item list inline instead. */
+@media (max-width: 900px) {
+  .items-dropdown {
+    position: static;
+    min-width: 0;
+    max-width: none;
+    box-shadow: none;
+    background: var(--color-surface-muted);
+  }
+
+  /* --color-muted fails AA on --color-surface-muted in light mode. */
+  .item-meta {
+    color: var(--color-text-secondary);
+  }
+
+  .stat-card {
+    padding: var(--space-4);
+  }
 }
 </style>

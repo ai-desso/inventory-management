@@ -225,91 +225,92 @@ export default {
 </script>
 
 <style scoped>
-.page-header {
-  margin-bottom: 1.5rem;
-}
+/* Page header, loading and error use the shared global styles. */
 
-.page-header h2 {
-  margin-bottom: 0.25rem;
-}
-
-.page-header p {
-  color: #64748b;
-  font-size: 0.875rem;
+/* The card owns no padding: header and table bleed to the edges so rows and dividers line up. */
+.card {
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f172a;
   margin: 0;
 }
 
 .search-box {
+  --search-pad: calc(var(--space-6) + var(--space-1));
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 300px;
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 360px;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: var(--space-3);
   width: 18px;
   height: 18px;
-  color: #94a3b8;
+  color: var(--color-muted);
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  color: #0f172a;
-  background: #f8fafc;
-  transition: all 0.2s;
+  padding: var(--space-2) var(--search-pad);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color var(--transition-base), background-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-focus);
 }
 
 .search-input::placeholder {
-  color: #94a3b8;
+  color: var(--color-muted);
 }
 
 .clear-search {
   position: absolute;
-  right: 0.5rem;
+  right: var(--space-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
+  padding: var(--space-1);
   background: transparent;
   border: none;
-  border-radius: 4px;
-  color: #94a3b8;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 .clear-search:hover {
-  background: #e2e8f0;
-  color: #64748b;
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.clear-search:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 .clear-search svg {
@@ -317,23 +318,35 @@ export default {
   height: 18px;
 }
 
-.loading,
-.error {
-  padding: 2rem;
-  text-align: center;
-  color: #64748b;
+thead {
+  background: var(--color-surface-muted);
 }
 
-.error {
-  color: #ef4444;
+th,
+td {
+  padding: var(--space-3) var(--space-4);
+}
+
+th:first-child,
+td:first-child {
+  padding-left: var(--space-5);
+}
+
+th:last-child,
+td:last-child {
+  padding-right: var(--space-5);
+}
+
+.badge {
+  white-space: nowrap;
 }
 
 .clickable-row {
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
+/* Scoped specificity beats the global tbody tr:hover, so no !important is needed. */
 .clickable-row:hover {
-  background: #eff6ff !important;
+  background: var(--color-primary-soft);
 }
 </style>

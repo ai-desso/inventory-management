@@ -1,0 +1,144 @@
+/*
+  Design tokens. Imported once from main.js. Light values are the default;
+  [data-theme="dark"] overrides colors and shadows only (spacing, radius, type, layout and z-index are theme-independent).
+
+  Contrast notes (WCAG AA = 4.5:1 normal text, 3:1 large text / UI):
+  - --color-muted passes AA on --color-surface and --color-bg, but not on --color-surface-muted in light mode (4.3:1). Use --color-text-secondary there.
+  - Light --color-success / --color-warning are 3.6-3.8:1 on white: large text, icons and fills only. For small text use the *-strong tokens.
+  - --color-faint is decorative (borders on hover, disabled states). Never use it for text.
+  - Text on a primary fill: --color-on-primary on --color-primary. Primary-coloured text on a surface: --color-primary-text.
+*/
+:root {
+  color-scheme: light;
+
+  /* Surfaces and text */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-text: #1e293b;
+  --color-text-secondary: #334155;
+  --color-heading: #0f172a;
+  --color-muted: #64748b;
+  --color-faint: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Primary */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-text: #2563eb;
+  --color-primary-soft: #eff6ff;
+  --color-on-primary: #ffffff;
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+
+  /* Status: base = fill / large text, soft = badge background, strong = small text on soft or on a surface */
+  --color-success: #059669;
+  --color-success-soft: #d1fae5;
+  --color-success-strong: #065f46;
+  --color-warning: #ea580c;
+  --color-warning-soft: #fed7aa;
+  --color-warning-strong: #92400e;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fecaca;
+  --color-danger-strong: #991b1b;
+  --color-danger-subtle: #fef2f2;
+  --color-info-soft: #dbeafe;
+  --color-info-strong: #1e40af;
+  --color-accent-soft: #e0e7ff;
+  --color-accent-strong: #3730a3;
+
+  /* Spacing scale (4px base) */
+  --space-0: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-4-5: 20px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.25);
+
+  /* Type */
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: Monaco, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.813rem;
+  --text-md: 0.875rem;
+  --text-base: 0.938rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.875rem;
+  --text-3xl: 2.25rem;
+
+  /* Motion */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+
+  /* Layout. The 900px collapse breakpoint is hard-coded in media queries: custom properties cannot be used there. */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --content-max: 1600px;
+
+  /* Stacking order: sticky content < sidebar < dropdowns < modals.
+     Dropdowns live inside the sidebar's stacking context, so modals (1000-2000) always cover the sidebar. */
+  --z-sticky: 90;
+  --z-sidebar: 100;
+  --z-dropdown: 1000;
+  --z-modal: 2000;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-muted: #283548;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #cbd5e1;
+  --color-heading: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-faint: #64748b;
+  --color-border: #334155;
+  --color-border-strong: #475569;
+  --color-overlay: rgba(0, 0, 0, 0.65);
+
+  /* The fill stays #2563eb so white text on it keeps 5.2:1; text on dark surfaces uses the lighter --color-primary-text. */
+  --color-primary: #2563eb;
+  --color-primary-hover: #3b82f6;
+  --color-primary-text: #93c5fd;
+  --color-primary-soft: #1e3a5f;
+  --color-on-primary: #ffffff;
+
+  --color-success: #34d399;
+  --color-success-soft: #064e3b;
+  --color-success-strong: #a7f3d0;
+  --color-warning: #fb923c;
+  --color-warning-soft: #7c2d12;
+  --color-warning-strong: #fed7aa;
+  --color-danger: #f87171;
+  --color-danger-soft: #7f1d1d;
+  --color-danger-strong: #fecaca;
+  --color-danger-subtle: #3b1a1f;
+  --color-info-soft: #1e3a8a;
+  --color-info-strong: #bfdbfe;
+  --color-accent-soft: #312e81;
+  --color-accent-strong: #c7d2fe;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.55);
+  --shadow-focus: 0 0 0 3px rgba(147, 197, 253, 0.35);
+}

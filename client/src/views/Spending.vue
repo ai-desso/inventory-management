@@ -492,80 +492,106 @@ export default {
 </script>
 
 <style scoped>
+.spending {
+  /* Chart series colours come from theme tokens so they stay readable in light and dark mode */
+  --series-procurement: var(--color-primary);
+  --series-operational: var(--color-accent-strong);
+  --series-labor: var(--color-success);
+  --series-overhead: var(--color-warning);
+  --series-revenue: var(--color-heading);
+  --series-cost: var(--color-danger);
+}
+
+.card,
+.stat-card {
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
 .stat-change {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
+  margin-top: var(--space-3);
+  font-size: var(--text-md);
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .stat-change.positive {
-  color: #059669;
+  color: var(--color-success-strong);
 }
 
 .stat-change.negative {
-  color: #dc2626;
+  color: var(--color-danger-strong);
 }
 
 .change-icon {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
-.chart-card {
-  margin-bottom: 1.75rem;
+.chart-card .card-header {
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .chart-legend {
   display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-md);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
+  gap: var(--space-2);
+  color: var(--color-muted);
 }
 
 .legend-dot {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: var(--radius-full);
 }
 
-.legend-dot.procurement { background: #3b82f6; }
-.legend-dot.operational { background: #8b5cf6; }
-.legend-dot.labor { background: #10b981; }
-.legend-dot.overhead { background: #f59e0b; }
-.legend-dot.revenue-color { background: #0f172a; }
-.legend-dot.cost-color { background: #ef4444; }
+.legend-dot.procurement { background: var(--series-procurement); }
+.legend-dot.operational { background: var(--series-operational); }
+.legend-dot.labor { background: var(--series-labor); }
+.legend-dot.overhead { background: var(--series-overhead); }
+.legend-dot.revenue-color { background: var(--series-revenue); }
+.legend-dot.cost-color { background: var(--series-cost); }
 
 .stats-grid-finance {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  /* min(100%, ...) prevents overflow in the content column next to the sidebar */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-4-5);
+  margin-bottom: var(--space-4-5);
 }
 
-.revenue-card {
-  border-left: 4px solid #0f172a;
+/* The :hover variants keep the accent edge when the shared .stat-card:hover recolours the border */
+.revenue-card,
+.revenue-card:hover {
+  border-left: 4px solid var(--series-revenue);
 }
 
-.cost-card {
-  border-left: 4px solid #ef4444;
+.cost-card,
+.cost-card:hover {
+  border-left: 4px solid var(--series-cost);
 }
 
-.profit-card {
-  border-left: 4px solid #3b82f6;
+.profit-card,
+.profit-card:hover {
+  border-left: 4px solid var(--color-primary);
 }
 
 .stat-meta {
-  margin-top: 0.5rem;
-  font-size: 0.813rem;
-  color: #64748b;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
 }
 
 .bar-group-revenue {
@@ -584,24 +610,24 @@ export default {
   justify-content: center;
   align-items: flex-end;
   height: 100%;
-  padding-bottom: 2rem;
+  padding-bottom: var(--space-6);
 }
 
 .revenue-bar, .cost-bar {
   width: 50%;
   max-width: 30px;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: opacity var(--transition-base), transform 0.3s ease;
   cursor: pointer;
   min-height: 4px;
 }
 
 .revenue-bar {
-  background: #0f172a;
+  background: var(--series-revenue);
 }
 
 .cost-bar {
-  background: #ef4444;
+  background: var(--series-cost);
 }
 
 .revenue-bar:hover, .cost-bar:hover {
@@ -610,31 +636,35 @@ export default {
 }
 
 .chart-container {
-  padding: 1.5rem 0;
+  padding: var(--space-4-5) 0 var(--space-1);
+  /* Months stay legible on narrow viewports: the chart scrolls instead of squeezing */
+  overflow-x: auto;
 }
 
 .bar-chart {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--space-5);
   height: 350px;
+  min-width: 480px;
 }
 
 .y-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-right: 1rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  border-right: 1px solid #e2e8f0;
+  padding-right: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  border-right: 1px solid var(--color-border);
 }
 
 .chart-area {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .bar-group {
@@ -652,9 +682,9 @@ export default {
   flex-direction: column-reverse;
   align-items: stretch;
   height: 100%;
-  padding-bottom: 2rem;
+  padding-bottom: var(--space-6);
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
 }
 
 .stacked-bar:hover {
@@ -663,93 +693,101 @@ export default {
 
 .bar-segment {
   width: 100%;
-  transition: all 0.3s ease;
+  transition: opacity var(--transition-base), height 0.3s ease;
   cursor: pointer;
   display: block;
 }
 
 .bar-segment:first-child {
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .bar-segment:last-child {
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-.bar-segment.procurement { background: #3b82f6; }
-.bar-segment.operational { background: #8b5cf6; }
-.bar-segment.labor { background: #10b981; }
-.bar-segment.overhead { background: #f59e0b; }
+.bar-segment.procurement { background: var(--series-procurement); }
+.bar-segment.operational { background: var(--series-operational); }
+.bar-segment.labor { background: var(--series-labor); }
+.bar-segment.overhead { background: var(--series-overhead); }
 
 .bar-segment:hover {
   opacity: 0.8;
 }
 
 .bar-label {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .two-column-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 1.75rem;
+  /* Fits the content column next to the 240px sidebar; min(100%, ...) never exceeds the available width */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: var(--space-4-5);
+}
+
+.two-column-grid > .card {
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .category-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .category-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
 }
 
 .category-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-heading);
 }
 
 .category-amount {
   font-weight: 700;
-  color: #2563eb;
-  font-size: 1.125rem;
+  color: var(--color-primary-text);
+  font-size: var(--text-lg);
 }
 
 .category-bar-container {
   width: 100%;
   height: 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .category-bar {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 4px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  border-radius: var(--radius-full);
   transition: width 0.6s ease;
 }
 
 .category-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.813rem;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
 }
 
 .percentage {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .change {
@@ -757,11 +795,11 @@ export default {
 }
 
 .change.positive {
-  color: #059669;
+  color: var(--color-success-strong);
 }
 
 .change.negative {
-  color: #dc2626;
+  color: var(--color-danger-strong);
 }
 
 .transactions-card {
@@ -770,7 +808,7 @@ export default {
 }
 
 .transactions-table-container {
-  overflow-y: auto;
+  overflow: auto;
   max-height: 400px;
 }
 
@@ -779,22 +817,17 @@ export default {
   border-collapse: collapse;
 }
 
+/* Sticky header needs an opaque background while rows scroll underneath */
 .transactions-table thead {
   position: sticky;
   top: 0;
-  background: #f8fafc;
-  z-index: 1;
+  background: var(--color-bg);
+  z-index: var(--z-sticky);
 }
 
 .transactions-table th {
-  text-align: left;
-  padding: 0.625rem 0.75rem;
-  font-weight: 600;
-  color: #475569;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
 }
 
 .transactions-table th.text-right {
@@ -802,48 +835,43 @@ export default {
 }
 
 .transactions-table td {
-  padding: 0.75rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.875rem;
+  padding: var(--space-3);
 }
 
 .transactions-table tbody tr {
   cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.transactions-table tbody tr:hover {
-  background: #f8fafc;
 }
 
 .transactions-table tbody tr.clickable-row:hover {
-  background: #eff6ff;
+  background: var(--color-primary-soft);
 }
 
 .transaction-id {
-  color: #64748b;
+  color: var(--color-muted);
   font-weight: 500;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.813rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
 }
 
 .transaction-description {
-  color: #0f172a;
+  color: var(--color-heading);
   font-weight: 500;
 }
 
 .transaction-vendor {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .transaction-date {
-  color: #64748b;
-  font-size: 0.813rem;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
 }
 
 .transaction-amount {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-heading);
+  white-space: nowrap;
 }
 
 .text-right {
