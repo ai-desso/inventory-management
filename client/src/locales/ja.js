@@ -8,6 +8,7 @@ export default {
     demandForecast: '需要予測',
     reports: 'レポート',
     menu: 'メインナビゲーション',
+    toggleSidebar: 'サイドバーを切り替え',
     darkMode: 'ダークモード',
     lightMode: 'ライトモード',
     companyName: '触媒コンポーネンツ',

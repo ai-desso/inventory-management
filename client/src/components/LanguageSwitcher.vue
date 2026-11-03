@@ -194,11 +194,4 @@ const selectLanguage = (locale) => {
   color: var(--color-primary-text);
   flex-shrink: 0;
 }
-
-@media (max-width: 900px) {
-  .language-button {
-    justify-content: center;
-    padding: var(--space-2);
-  }
-}
 </style>
