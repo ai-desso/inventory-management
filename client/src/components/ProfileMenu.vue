@@ -295,11 +295,4 @@ const handleLogout = () => {
   min-width: 20px;
   text-align: center;
 }
-
-@media (max-width: 900px) {
-  .profile-button {
-    justify-content: center;
-    padding: var(--space-2);
-  }
-}
 </style>

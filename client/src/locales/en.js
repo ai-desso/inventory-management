@@ -8,6 +8,7 @@ export default {
     demandForecast: 'Demand Forecast',
     reports: 'Reports',
     menu: 'Main navigation',
+    toggleSidebar: 'Toggle sidebar',
     darkMode: 'Dark mode',
     lightMode: 'Light mode',
     companyName: 'Catalyst Components',

@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'is-collapsed': isCollapsed }">
       <div class="sidebar-brand">
         <svg
           class="sidebar-brand-mark"
@@ -19,14 +19,36 @@
           <h1 class="sidebar-brand-title">{{ t('nav.companyName') }}</h1>
           <span class="sidebar-brand-subtitle">{{ t('nav.subtitle') }}</span>
         </div>
+        <button
+          type="button"
+          class="sidebar-toggle"
+          :aria-label="t('nav.toggleSidebar')"
+          :title="t('nav.toggleSidebar')"
+          :aria-expanded="String(!isCollapsed)"
+          aria-controls="sidebar-nav"
+          @click="toggleSidebar"
+        >
+          <svg
+            class="sidebar-toggle-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
       </div>
 
-      <nav class="sidebar-nav" :aria-label="t('nav.menu')">
+      <nav id="sidebar-nav" class="sidebar-nav" :aria-label="t('nav.menu')" @click="closeOverlay">
         <router-link
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          :title="item.label"
+          :title="isCollapsed ? item.label : null"
           class="sidebar-link"
           active-class="is-active"
         >
@@ -50,7 +72,7 @@
           type="button"
           class="sidebar-link sidebar-theme-toggle"
           :aria-label="themeToggleLabel"
-          :title="themeToggleLabel"
+          :title="isCollapsed ? themeToggleLabel : null"
           @click="toggleTheme"
         >
           <svg
@@ -119,6 +141,7 @@ import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
 import { useTheme } from './composables/useTheme'
+import { useSidebar } from './composables/useSidebar'
 import FilterBar from './components/FilterBar.vue'
 import ProfileMenu from './components/ProfileMenu.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
@@ -148,6 +171,7 @@ export default {
     const { currentUser } = useAuth()
     const { t } = useI18n()
     const { isDark, toggleTheme } = useTheme()
+    const { isCollapsed, toggleSidebar, closeOverlay } = useSidebar()
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
@@ -238,6 +262,9 @@ export default {
       isDark,
       toggleTheme,
       themeToggleLabel,
+      isCollapsed,
+      toggleSidebar,
+      closeOverlay,
       showProfileDetails,
       showTasks,
       tasks,
@@ -300,6 +327,11 @@ body {
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   z-index: var(--z-sidebar);
+  transition: width var(--transition-base);
+}
+
+.sidebar.is-collapsed {
+  width: var(--sidebar-width-collapsed);
 }
 
 .sidebar-brand {
@@ -322,6 +354,7 @@ body {
 
 .sidebar-brand-text {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -339,6 +372,43 @@ body {
   margin-top: var(--space-0);
   font-size: var(--text-xs);
   color: var(--color-muted);
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-heading);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  transition: transform var(--transition-base);
+}
+
+.sidebar.is-collapsed .sidebar-toggle-icon {
+  transform: rotate(180deg);
 }
 
 .sidebar-nav {
@@ -367,7 +437,10 @@ body {
   font-weight: 500;
   text-align: left;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
+  /* Clips the label while the width animates so it does not spill past the sidebar edge. */
+  overflow: hidden;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
@@ -401,45 +474,73 @@ body {
   border-top: 1px solid var(--color-border);
 }
 
-/* Narrow viewports: icon rail. Labels are visually hidden, not display:none, so links keep their accessible name.
+/* Icons-only mode (.is-collapsed, driven by useSidebar: saved preference on wide screens, forced below 900px).
+   Labels are visually hidden, not display:none, so controls keep their accessible name.
    Also used by ProfileMenu and LanguageSwitcher for their text and chevrons. */
+.sidebar.is-collapsed .sidebar-brand {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-nav {
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-footer {
+  padding: var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-link {
+  justify-content: center;
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar.is-collapsed .profile-button,
+.sidebar.is-collapsed .language-button {
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Narrow viewports: the sidebar leaves the flow and the content column reserves the icon rail's width.
+   Expanding it (toggle) then overlays the content instead of squeezing it. Must match SMALL_QUERY in useSidebar.js. */
 @media (max-width: 900px) {
   .sidebar {
-    width: var(--sidebar-width-collapsed);
+    position: fixed;
+    top: 0;
+    left: 0;
   }
 
-  .sidebar-brand {
-    justify-content: center;
-    padding: var(--space-4) var(--space-2);
+  .sidebar:not(.is-collapsed) {
+    box-shadow: var(--shadow-lg);
   }
 
-  .sidebar-nav {
-    padding: var(--space-3) var(--space-2);
-  }
-
-  .sidebar-footer {
-    padding: var(--space-2);
-  }
-
-  .sidebar-link {
-    justify-content: center;
-    padding: var(--space-3) var(--space-2);
-  }
-
-  .sidebar-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    border: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+  .app-content {
+    margin-left: var(--sidebar-width-collapsed);
   }
 
   .main-content {
     padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-toggle-icon {
+    transition: none;
   }
 }
 
