@@ -1,0 +1,128 @@
+<!--
+  Starting template for the sidebar. Not a live component: copy it into the
+  app, then adapt the brand, nav source, footer slots and styling to the app.
+-->
+<template>
+  <aside class="sidebar" aria-label="Primary navigation">
+    <div class="sidebar-brand">
+      <slot name="brand">
+        <span class="sidebar-brand-title">{{ title }}</span>
+      </slot>
+    </div>
+
+    <nav class="sidebar-nav">
+      <router-link
+        v-for="item in items"
+        :key="item.to"
+        :to="item.to"
+        class="sidebar-link"
+        active-class="is-active"
+      >
+        <svg
+          v-if="item.icon"
+          class="sidebar-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+          v-html="item.icon"
+        />
+        <span>{{ item.label }}</span>
+      </router-link>
+    </nav>
+
+    <div class="sidebar-footer">
+      <slot name="footer" />
+    </div>
+  </aside>
+</template>
+
+<script setup>
+defineProps({
+  title: { type: String, default: '' },
+  // [{ to: '/inventory', label: 'Inventory', icon: '<path d="..."/>' }]
+  // label should come from i18n (t('nav.inventory')), not a literal.
+  items: { type: Array, required: true }
+})
+</script>
+
+<style scoped>
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  z-index: var(--z-sidebar);
+  /* No overflow: hidden here, it would clip dropdowns in the footer. */
+}
+
+.sidebar-brand {
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-brand-title {
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sidebar-link:hover {
+  background: var(--color-bg);
+  color: var(--color-heading);
+}
+
+.sidebar-link.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.sidebar-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: var(--sidebar-width-collapsed);
+  }
+  .sidebar-link span,
+  .sidebar-brand-title {
+    display: none;
+  }
+}
+</style>

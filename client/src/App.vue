@@ -1,42 +1,123 @@
 <template>
   <div class="app">
-    <header class="top-nav">
-      <div class="nav-container">
-        <div class="logo">
-          <h1>{{ t('nav.companyName') }}</h1>
-          <span class="subtitle">{{ t('nav.subtitle') }}</span>
+    <aside class="sidebar" :class="{ 'is-collapsed': isCollapsed }">
+      <div class="sidebar-brand">
+        <svg
+          class="sidebar-brand-mark"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2l9 5v10l-9 5-9-5V7z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <div class="sidebar-brand-text sidebar-label">
+          <h1 class="sidebar-brand-title">{{ t('nav.companyName') }}</h1>
+          <span class="sidebar-brand-subtitle">{{ t('nav.subtitle') }}</span>
         </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
-          </router-link>
-        </nav>
+        <button
+          type="button"
+          class="sidebar-toggle"
+          :aria-label="t('nav.toggleSidebar')"
+          :title="t('nav.toggleSidebar')"
+          :aria-expanded="String(!isCollapsed)"
+          aria-controls="sidebar-nav"
+          @click="toggleSidebar"
+        >
+          <svg
+            class="sidebar-toggle-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+      </div>
+
+      <nav id="sidebar-nav" class="sidebar-nav" :aria-label="t('nav.menu')" @click="closeOverlay">
+        <router-link
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          :title="isCollapsed ? item.label : null"
+          class="sidebar-link"
+          active-class="is-active"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            v-html="item.icon"
+          />
+          <span class="sidebar-label">{{ item.label }}</span>
+        </router-link>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button
+          type="button"
+          class="sidebar-link sidebar-theme-toggle"
+          :aria-label="themeToggleLabel"
+          :title="isCollapsed ? themeToggleLabel : null"
+          @click="toggleTheme"
+        >
+          <svg
+            v-if="isDark"
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+          <svg
+            v-else
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+          <span class="sidebar-label">{{ themeToggleLabel }}</span>
+        </button>
         <LanguageSwitcher />
         <ProfileMenu
           @show-profile-details="showProfileDetails = true"
           @show-tasks="showTasks = true"
         />
       </div>
-    </header>
-    <FilterBar />
-    <main class="main-content">
-      <router-view />
-    </main>
+    </aside>
+
+    <div class="app-content">
+      <FilterBar />
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
 
     <ProfileDetailsModal
       :is-open="showProfileDetails"
@@ -59,11 +140,23 @@ import { ref, onMounted, computed } from 'vue'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
+import { useTheme } from './composables/useTheme'
+import { useSidebar } from './composables/useSidebar'
 import FilterBar from './components/FilterBar.vue'
 import ProfileMenu from './components/ProfileMenu.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
 import TasksModal from './components/TasksModal.vue'
 import LanguageSwitcher from './components/LanguageSwitcher.vue'
+
+// Inner SVG markup (24x24 viewBox, stroked with currentColor). Static, trusted strings.
+const NAV_ICONS = {
+  overview: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  inventory: '<path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7.5L12 12.5l8.7-5"/><path d="M12 22V12.5"/>',
+  orders: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6"/>',
+  finance: '<path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  demand: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
+  reports: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 9h2M8 13h8M8 17h8"/>'
+}
 
 export default {
   name: 'App',
@@ -77,9 +170,24 @@ export default {
   setup() {
     const { currentUser } = useAuth()
     const { t } = useI18n()
+    const { isDark, toggleTheme } = useTheme()
+    const { isCollapsed, toggleSidebar, closeOverlay } = useSidebar()
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
+
+    // Single nav source; labels go through t() so they follow the locale.
+    const navItems = computed(() => [
+      { to: '/', label: t('nav.overview'), icon: NAV_ICONS.overview },
+      { to: '/inventory', label: t('nav.inventory'), icon: NAV_ICONS.inventory },
+      { to: '/orders', label: t('nav.orders'), icon: NAV_ICONS.orders },
+      { to: '/spending', label: t('nav.finance'), icon: NAV_ICONS.finance },
+      { to: '/demand', label: t('nav.demandForecast'), icon: NAV_ICONS.demand },
+      { to: '/reports', label: t('nav.reports'), icon: NAV_ICONS.reports }
+    ])
+
+    // Label names the mode the button switches to.
+    const themeToggleLabel = computed(() => (isDark.value ? t('nav.lightMode') : t('nav.darkMode')))
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -150,6 +258,13 @@ export default {
 
     return {
       t,
+      navItems,
+      isDark,
+      toggleTheme,
+      themeToggleLabel,
+      isCollapsed,
+      toggleSidebar,
+      closeOverlay,
       showProfileDetails,
       showTasks,
       tasks,
@@ -169,201 +284,356 @@ export default {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Shell layout: sidebar column + content column. Neither creates a stacking context
+   beyond the sidebar's own, so the modals (z 1000-2000) rendered as siblings cover it. */
 .app {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
-.top-nav {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.nav-container {
-  max-width: 1600px;
-  margin: 0 auto;
+.app-content {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  padding: 0 2rem;
-  height: 70px;
-}
-
-.nav-container > .nav-tabs {
-  margin-left: auto;
-  margin-right: 1rem;
-}
-
-.nav-container > .language-switcher {
-  margin-right: 1rem;
-}
-
-.logo {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.logo h1 {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-}
-
-.subtitle {
-  font-size: 0.813rem;
-  color: #64748b;
-  font-weight: 400;
-  padding-left: 0.75rem;
-  border-left: 1px solid #e2e8f0;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.nav-tabs a {
-  padding: 0.625rem 1.25rem;
-  color: #64748b;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.938rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.nav-tabs a:hover {
-  color: #0f172a;
-  background: #f1f5f9;
-}
-
-.nav-tabs a.active {
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.nav-tabs a.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #2563eb;
+  flex-direction: column;
 }
 
 .main-content {
   flex: 1;
-  max-width: 1600px;
   width: 100%;
+  max-width: var(--content-max);
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: var(--space-5) var(--space-6);
+}
+
+/* Sidebar. No overflow on the sidebar itself: the footer dropdowns open to its right and would be clipped.
+   Only the nav scrolls. */
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  z-index: var(--z-sidebar);
+  transition: width var(--transition-base);
+}
+
+.sidebar.is-collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-brand-mark {
+  width: 32px;
+  height: 32px;
+  padding: var(--space-1);
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-brand-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-heading);
+  letter-spacing: -0.025em;
+}
+
+.sidebar-brand-subtitle {
+  margin-top: var(--space-0);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-heading);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  transition: transform var(--transition-base);
+}
+
+.sidebar.is-collapsed .sidebar-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  overflow-y: auto;
+}
+
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-muted);
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* Clips the label while the width animates so it does not spill past the sidebar edge. */
+  overflow: hidden;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-link:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-heading);
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebar-link.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+  font-weight: 600;
+}
+
+.sidebar-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Icons-only mode (.is-collapsed, driven by useSidebar: saved preference on wide screens, forced below 900px).
+   Labels are visually hidden, not display:none, so controls keep their accessible name.
+   Also used by ProfileMenu and LanguageSwitcher for their text and chevrons. */
+.sidebar.is-collapsed .sidebar-brand {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-nav {
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-footer {
+  padding: var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-link {
+  justify-content: center;
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar.is-collapsed .profile-button,
+.sidebar.is-collapsed .language-button {
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+.sidebar.is-collapsed .sidebar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Narrow viewports: the sidebar leaves the flow and the content column reserves the icon rail's width.
+   Expanding it (toggle) then overlays the content instead of squeezing it. Must match SMALL_QUERY in useSidebar.js. */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .sidebar:not(.is-collapsed) {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .app-content {
+    margin-left: var(--sidebar-width-collapsed);
+  }
+
+  .main-content {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-toggle-icon {
+    transition: none;
+  }
 }
 
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-5);
 }
 
 .page-header h2 {
-  font-size: 1.875rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 0.375rem;
+  color: var(--color-heading);
+  margin-bottom: var(--space-2);
   letter-spacing: -0.025em;
 }
 
 .page-header p {
-  color: #64748b;
-  font-size: 0.938rem;
+  color: var(--color-muted);
+  font-size: var(--text-base);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-4-5);
+  margin-bottom: var(--space-5);
 }
 
 .stat-card {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
+  background: var(--color-surface);
+  padding: var(--space-4-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .stat-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-label {
-  color: #64748b;
-  font-size: 0.875rem;
+  color: var(--color-muted);
+  font-size: var(--text-md);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.625rem;
+  margin-bottom: var(--space-2);
 }
 
 .stat-value {
-  font-size: 2.25rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-heading);
   letter-spacing: -0.025em;
 }
 
 .stat-card.warning .stat-value {
-  color: #ea580c;
+  color: var(--color-warning);
 }
 
 .stat-card.success .stat-value {
-  color: #059669;
+  color: var(--color-success);
 }
 
 .stat-card.danger .stat-value {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .stat-card.info .stat-value {
-  color: #2563eb;
+  color: var(--color-primary-text);
 }
 
 .card {
-  background: white;
-  border-radius: 10px;
-  padding: 1.25rem;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1.25rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4-5);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-4-5);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.875rem;
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card-title {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-heading);
   letter-spacing: -0.025em;
 }
 
@@ -377,110 +647,90 @@ table {
 }
 
 thead {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 th {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   font-weight: 600;
-  color: #475569;
-  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 td {
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid #f1f5f9;
-  color: #334155;
-  font-size: 0.875rem;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
 }
 
 tbody tr {
-  transition: background-color 0.15s ease;
+  transition: background-color var(--transition-fast);
 }
 
 tbody tr:hover {
-  background: #f8fafc;
+  background: var(--color-bg);
 }
 
 .badge {
   display: inline-block;
-  padding: 0.313rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
-.badge.success {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.badge.warning {
-  background: #fed7aa;
-  color: #92400e;
-}
-
-.badge.danger {
-  background: #fecaca;
-  color: #991b1b;
-}
-
-.badge.info {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
+.badge.success,
 .badge.increasing {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-success-soft);
+  color: var(--color-success-strong);
 }
 
-.badge.decreasing {
-  background: #fecaca;
-  color: #991b1b;
+.badge.warning,
+.badge.medium {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-strong);
+}
+
+.badge.danger,
+.badge.decreasing,
+.badge.high {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-strong);
+}
+
+.badge.info,
+.badge.low {
+  background: var(--color-info-soft);
+  color: var(--color-info-strong);
 }
 
 .badge.stable {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.badge.high {
-  background: #fecaca;
-  color: #991b1b;
-}
-
-.badge.medium {
-  background: #fed7aa;
-  color: #92400e;
-}
-
-.badge.low {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
 }
 
 .loading {
   text-align: center;
-  padding: 3rem;
-  color: #64748b;
-  font-size: 0.938rem;
+  padding: var(--space-7);
+  color: var(--color-muted);
+  font-size: var(--text-base);
 }
 
 .error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-  font-size: 0.938rem;
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger-soft);
+  color: var(--color-danger-strong);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  margin: var(--space-4) 0;
+  font-size: var(--text-base);
 }
 </style>
