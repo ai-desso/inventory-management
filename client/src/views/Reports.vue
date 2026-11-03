@@ -8,6 +8,26 @@
     <div v-if="loading" class="loading">Loading reports...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
+      <!-- Summary Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Revenue (YTD)</div>
+          <div class="stat-value">${{ formatNumber(totalRevenue) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Monthly Revenue</div>
+          <div class="stat-value">${{ formatNumber(avgMonthlyRevenue) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Orders (YTD)</div>
+          <div class="stat-value">{{ totalOrders }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Best Performing Quarter</div>
+          <div class="stat-value">{{ bestQuarter }}</div>
+        </div>
+      </div>
+
       <!-- Quarterly Performance -->
       <div class="card">
         <div class="card-header">
@@ -25,7 +45,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(q, index) in quarterlyData" :key="index">
+              <tr v-for="q in quarterlyData" :key="q.quarter">
                 <td><strong>{{ q.quarter }}</strong></td>
                 <td>{{ q.total_orders }}</td>
                 <td>${{ formatNumber(q.total_revenue) }}</td>
@@ -48,7 +68,7 @@
         </div>
         <div class="chart-container">
           <div class="bar-chart">
-            <div v-for="(month, index) in monthlyData" :key="index" class="bar-wrapper">
+            <div v-for="month in monthlyData" :key="month.month" class="bar-wrapper">
               <div class="bar-container">
                 <div
                   class="bar"
@@ -79,7 +99,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(month, index) in monthlyData" :key="index">
+              <tr v-for="(month, index) in monthlyData" :key="month.month">
                 <td><strong>{{ formatMonth(month.month) }}</strong></td>
                 <td>{{ month.order_count }}</td>
                 <td>${{ formatNumber(month.revenue) }}</td>
@@ -98,26 +118,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- Summary Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Revenue (YTD)</div>
-          <div class="stat-value">${{ formatNumber(totalRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Avg Monthly Revenue</div>
-          <div class="stat-value">${{ formatNumber(avgMonthlyRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Orders (YTD)</div>
-          <div class="stat-value">{{ totalOrders }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Best Performing Quarter</div>
-          <div class="stat-value">{{ bestQuarter }}</div>
         </div>
       </div>
     </div>
@@ -317,55 +317,57 @@ export default {
 </script>
 
 <style scoped>
-.reports {
-  padding: 0;
+/* .card, .card-header, .card-title, .stat-card, table, .badge, .loading and .error come from App.vue.
+   Only additions live here. */
+.card,
+.stat-card {
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card {
+  min-width: 0;
+}
+
+/* Currency values are long; 2xl keeps four tiles on one row without overflow */
+.stat-value {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Summary tiles sit above the tables. minmax(min(100%, ...)) prevents overflow on narrow screens. */
+.stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-4);
 }
 
 .card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 0;
 }
 
-.card-header {
-  margin-bottom: 1.5rem;
+.card:last-child {
+  margin-bottom: 0;
 }
 
-.card-title {
-  font-size: 1.25rem;
+.positive-change {
+  color: var(--color-success-strong);
   font-weight: 600;
-  color: #0f172a;
-  margin: 0;
 }
 
-.reports-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.reports-table th {
-  background: #f8fafc;
-  padding: 0.75rem;
-  text-align: left;
+.negative-change {
+  color: var(--color-danger-strong);
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 2px solid #e2e8f0;
 }
 
-.reports-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.reports-table tr:hover {
-  background: #f8fafc;
-}
-
+/* Bar chart: scrolls inside the card instead of overflowing the page on narrow screens */
 .chart-container {
-  padding: 2rem 1rem;
+  padding: var(--space-4) var(--space-4) var(--space-6);
   min-height: 300px;
+  overflow-x: auto;
 }
 
 .bar-chart {
@@ -373,7 +375,7 @@ export default {
   align-items: flex-end;
   justify-content: space-around;
   height: 250px;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .bar-wrapper {
@@ -381,6 +383,7 @@ export default {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  min-width: 0;
   max-width: 80px;
 }
 
@@ -393,96 +396,22 @@ export default {
 
 .bar {
   width: 100%;
-  background: linear-gradient(to top, #3b82f6, #60a5fa);
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: background var(--transition-fast);
   cursor: pointer;
 }
 
 .bar:hover {
-  background: linear-gradient(to top, #2563eb, #3b82f6);
+  background: var(--color-primary-hover);
 }
 
 .bar-label {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #64748b;
+  margin-top: var(--space-5);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
   text-align: center;
   transform: rotate(-45deg);
   white-space: nowrap;
-  margin-top: 1.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #3b82f6;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.badge.success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.warning {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.badge.danger {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.positive-change {
-  color: #16a34a;
-  font-weight: 600;
-}
-
-.negative-change {
-  color: #dc2626;
-  font-weight: 600;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
-}
-
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
 }
 </style>
